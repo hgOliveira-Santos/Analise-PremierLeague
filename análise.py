@@ -45,24 +45,27 @@ performance_casa = dados_filtrados.groupby('HomeTeam').agg({
                    'HomeTeam': 'Games'})
 
 performance_casa['% Victory'] = (performance_casa['Wins'] / performance_casa['Games']) * 100
-print(f"Desempenho em casa (primeiras 25 linhas): \n{performance_casa.head(25)}")
+print(f"Desempenho em casa dos 25 times que disputaram a Premier League de 2021 a 2023: \n{performance_casa.head(25)}")
 
 # Desempenho fora de casa
 performance_fora = dados_filtrados.groupby('AwayTeam').agg({
     'AwayGoals': 'sum',
     'HomeGoals': 'sum', 
-    'Result': lambda x: (x == 'H').sum(),
+    'Result': lambda x: (x == 'A').sum(),  
     'AwayTeam': 'count'
 }).rename(columns={'AwayGoals': 'GoalsScored', 
                    'HomeGoals': 'GoalsConceded',
-                   'Result': 'Wins',
+                   'Result': 'Wins',  
                    'AwayTeam': 'Games'})
 
 performance_fora['% Victory'] = (performance_fora['Wins'] / performance_fora['Games']) * 100
-print(f"Desempenho fora de casa (primeiras 25 linhas): \n{performance_fora.head(25)}")
+print(f"Desempenho fora de casa dos 25 times que disputaram a Premier League de 2021 a 2023: \n{performance_fora.head(25)}")
 
 # ---------------------------------------------------------
 # Relação entre gols marcados e % de vitórias em casa
+
+from adjustText import adjust_text
+
 times_casa = performance_casa.index.tolist()
 gols_casa = performance_casa['GoalsScored'].tolist()
 perc_vitoria_casa = performance_casa['% Victory'].tolist()
@@ -104,6 +107,22 @@ plt.grid(True)
 plt.show()
 
 # ---------------------------------------------------------
+# Ranking dos times que mais marcaram gols no período
+gols_marcados = dados_filtrados.groupby('HomeTeam').agg({
+    'HomeGoals': 'sum',
+    'AwayGoals': 'sum'})
 
+gols_marcados['TotalGoals'] = gols_marcados['HomeGoals'] + gols_marcados['AwayGoals']
+gols_marcados = gols_marcados.sort_values(by='TotalGoals', ascending=False)
+gols_marcados
 
+times = gols_marcados.index
 
+plt.figure(figsize=(12, 6))
+plt.bar(times, gols_marcados['TotalGoals'], color='royalblue', edgecolor='black')
+plt.xlabel('Times')
+plt.ylabel('Quantidade de Gols')
+plt.title('Total de Gols Marcados por Cada Time na Premier League (2021-2023)')
+plt.xticks(rotation=60)
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.show()
